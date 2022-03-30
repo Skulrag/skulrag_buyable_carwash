@@ -122,17 +122,13 @@ function initBlips()
       SetBlipScale(Config.Zones[k].Washer.Blip, Config.Blip.Scale)
       if v.isForSale or v.Owner == '' or v.Owner == nil then
         SetBlipColour(Config.Zones[k].Washer.Blip, 5)
-        BeginTextCommandSetBlipName("STRING")
-        AddTextComponentString(_U('carwash_forsale_blip'))
-        EndTextCommandSetBlipName(Config.Zones[k].Washer.Blip)
-        SetBlipAsShortRange(Config.Zones[k].Washer.Blip, true)
       else
         SetBlipColour(Config.Zones[k].Washer.Blip, 2)
-        BeginTextCommandSetBlipName("STRING")
-        AddTextComponentString(_U('carwash_blip'))
-        EndTextCommandSetBlipName(Config.Zones[k].Washer.Blip)
-        SetBlipAsShortRange(Config.Zones[k].Washer.Blip, true)
       end
+      BeginTextCommandSetBlipName("STRING")
+      AddTextComponentString(_U('carwash_blip'))
+      EndTextCommandSetBlipName(Config.Zones[k].Washer.Blip)
+      SetBlipAsShortRange(Config.Zones[k].Washer.Blip, true)
     end
     Citizen.Wait(500)
     ownerInit = false
