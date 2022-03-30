@@ -26,6 +26,16 @@ AddEventHandler('buyable_carwash:getOwners', function()
     end
 end)
 
+RegisterServerEvent('buyable_carwash:openMenu')
+AddEventHandler('buyable_carwash:openMenu', function(zone)
+  TriggerClientEvent('buyable_carwash:menuIsAlreadyOpened', -1, zone, true)
+end)
+
+RegisterServerEvent('buyable_carwash:closeMenu')
+AddEventHandler('buyable_carwash:closeMenu', function(zone)
+  TriggerClientEvent('buyable_carwash:menuIsAlreadyOpened', -1, zone, false)
+end)
+
 --
 RegisterServerEvent('buyable_carwash:buy_carwash')
 AddEventHandler('buyable_carwash:buy_carwash', function(zone)
@@ -37,20 +47,24 @@ AddEventHandler('buyable_carwash:buy_carwash', function(zone)
       xOwner = ESX.GetPlayerFromIdentifier(Carwash[zone].owner)
     end
 
-    if playerMoney > Carwash[zone].price then
+    local price = MySQL.Sync.fetchScalar('SELECT price from `carwash_list` WHERE name=@zone', {
+        ['@zone'] = zone,
+    }, function(_)end)
+
+    if playerMoney > price then
         MySQL.Sync.execute('UPDATE `carwash_list` SET `price`=0, `owner`=@identifier, `isForSale`=@forsale WHERE name = @zone', {
             ['@identifier'] = xPlayer.identifier,
             ['@forsale'] = false,
             ['@zone'] = zone,
         }, function(_)
         end)
-        xPlayer.removeMoney(Carwash[zone].price)
+        xPlayer.removeMoney(price)
+        TriggerClientEvent('buyable_carwash:carwashBought', -1, zone, xPlayer.identifier)
         if xOwner ~= nil then
-            xOwner.addAccountMoney('bank', Carwash[zone].price)
+            xOwner.addAccountMoney('bank', price)
         end
         print('[Carwash bought] FROM : Owner Identifier: %s /  BY : Identifier: %s', Carwash[zone].owner, xPlayer.identifier)
-        TriggerClientEvent('esx:showNotification', _source, 'Vous venez d\'acheter cette station de lavage au prix de ' .. Carwash[zone].price .. '$')
-        TriggerClientEvent('buyable_carwash:carwashBought', -1, zone, xPlayer.identifier)
+        TriggerClientEvent('esx:showNotification', _source, 'Vous venez d\'acheter cette station de lavage au prix de ' .. price .. '$')
     else
         TriggerClientEvent('esx:showNotification', _source, 'Vous n\'avez pas assez d\'argent ')
     end
@@ -90,7 +104,10 @@ end)
 
 --
 ESX.RegisterServerCallback('buyable_carwash:isforsale', function(source, cb, zone)
-    cb(Carwash[zone].isForSale, Carwash[zone].price)
+  local price = MySQL.Sync.fetchScalar('SELECT price from `carwash_list` WHERE name=@zone', {
+      ['@zone'] = zone,
+  }, function(_)end)
+  cb(Carwash[zone].isForSale, price)
 end)
 
 --

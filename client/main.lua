@@ -38,6 +38,7 @@ RegisterNetEvent('buyable_carwash:carwashBought')
 AddEventHandler('buyable_carwash:carwashBought', function(zone, owner)
     SetBlipColour(Config.Zones[zone].Washer.Blip, 2)
     Config.Zones[zone].Owner = owner
+    Config.Zones[zone].isForSale = false
 end)
 
 RegisterNetEvent('buyable_carwash:cancelSelling')
@@ -48,6 +49,7 @@ end)
 RegisterNetEvent('buyable_carwash:carwashForSale')
 AddEventHandler('buyable_carwash:carwashForSale', function(zone, price)
     SetBlipColour(Config.Zones[zone].Washer.Blip, 5)
+    Config.Zones[zone].isForSale = true
 end)
 
 RegisterNetEvent('buyable_carwash:clean')
@@ -79,6 +81,11 @@ AddEventHandler('buyable_carwash:cancel', function()
     EndTextCommandThefeedPostTicker(true, true)
 end)
 
+RegisterNetEvent('buyable_carwash:menuIsAlreadyOpened')
+AddEventHandler('buyable_carwash:menuIsAlreadyOpened', function(zone, isAlreadyOpened)
+  Config.Zones[zone].menuIsAlreadyOpened = isAlreadyOpened
+end)
+
 local price
 
 AddEventHandler('buyable_carwash:hasEnteredMarker', function(zone, zoneType)
@@ -95,10 +102,10 @@ AddEventHandler('buyable_carwash:hasEnteredMarker', function(zone, zoneType)
       CurrentAction = 'carwash'
       CurrentActionMsg = _U('no_wash_needed')
     end
-  elseif zoneType == 'manage' then
+  elseif zoneType == 'manage' and not Config.Zones[zone].menuIsAlreadyOpened then
     CurrentAction = 'manage'
     CurrentActionMsg = _U('press_manage')
-  elseif zoneType == 'buy' then
+  elseif zoneType == 'buy' and not Config.Zones[zone].menuIsAlreadyOpened then
     CurrentAction = 'buy'
     CurrentActionMsg = _U('press_buy')
   end
@@ -162,12 +169,15 @@ function OpenBuyMenu(zone)
     }, function(data, menu)
       if data.current.type == 'buy_shop' then
         TriggerServerEvent('buyable_carwash:buy_carwash', zone)
+        TriggerServerEvent('buyable_carwash:closeMenu', zone)
         menu.close()
       end
       if data.current.type == 'cancel' then
+        TriggerServerEvent('buyable_carwash:closeMenu', zone)
         menu.close()
       end
       end, function(data, menu)
+        TriggerServerEvent('buyable_carwash:closeMenu', zone)
         menu.close()
     end)
   end
@@ -254,9 +264,11 @@ function OpenProprioMenu(zone)
       menu.close()
       OpenProprioMenu(zone)
     elseif data.current.type == 'cancel' then
+      TriggerServerEvent('buyable_carwash:closeMenu', zone)
       menu.close()
     end
     end, function(data, menu)
+      TriggerServerEvent('buyable_carwash:closeMenu', zone)
       menu.close()
     end)
 end
@@ -347,12 +359,14 @@ Citizen.CreateThread(function()
       elseif CurrentAction == 'manage' then
         if Config.Zones[CurrentActionData.zone].Owner == myIdentifier then
           if IsControlJustReleased(0, 38) then
+            TriggerServerEvent('buyable_carwash:openMenu', CurrentActionData.zone)
             OpenProprioMenu(CurrentActionData.zone)
           end
         end
       elseif CurrentAction == 'buy' then
         if IsControlJustReleased(0, 38) then
           CurrentAction = nil
+          TriggerServerEvent('buyable_carwash:openMenu', CurrentActionData.zone)
           OpenBuyMenu(CurrentActionData.zone)
         end
       end
