@@ -8,5 +8,8 @@ Locales['fr'] = {
 	['cleaning_vehicle'] = 'Véhicule en cours de nettoyage... Veuillez patienter',
 	['cleaned_vehicle'] = 'Votre véhicule a été nettoyé pour un montant de ~g~$%d',
 	['not_enough_money'] = 'Vous n\' avez pas l\'argent nécessaire : ~r~$%d',
-	['shop_proprio'] = 'Gestion de la station'
+	['shop_proprio'] = 'Gestion de la station',
+	['menu_isAlreadyOpened'] = 'Le menu est déjà en cours d\'utilisation',
+	['invalid_amount'] = 'Montant non valide',
+	['have_withdrawn'] = 'Vous avez retiré ~g~$%d'
 }

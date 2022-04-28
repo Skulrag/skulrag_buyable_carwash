@@ -63,7 +63,7 @@ AddEventHandler('buyable_carwash:buy_carwash', function(zone)
         if xOwner ~= nil then
             xOwner.addAccountMoney('bank', price)
         end
-        print('[Carwash bought] FROM : Owner Identifier: %s /  BY : Identifier: %s', Carwash[zone].owner, xPlayer.identifier)
+        print(('[Carwash bought] FROM : Owner Identifier: %s /  BY : Identifier: %s'):format(Carwash[zone].owner, xPlayer.identifier))
         TriggerClientEvent('esx:showNotification', _source, 'Vous venez d\'acheter cette station de lavage au prix de ' .. price .. '$')
     else
         TriggerClientEvent('esx:showNotification', _source, 'Vous n\'avez pas assez d\'argent ')
@@ -87,7 +87,7 @@ AddEventHandler('buyable_carwash:withdrawMoney', function(zone, amount)
         ['@zone'] = zone,
     }, function(_)end)
     xPlayer.addMoney(amount)
-    print('[Carwash withdrawMoney] BY : Owner Identifier: %s / Quantity : %d', xPlayer.identifier, amount)
+    print(('[Carwash withdrawMoney] BY : Owner Identifier: %s / Quantity : %d'):format(xPlayer.identifier, amount))
     xPlayer.showNotification(_U('have_withdrawn', ESX.Math.GroupDigits(amount)))
   else
     xPlayer.showNotification(_U('invalid_amount'))

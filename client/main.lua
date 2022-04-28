@@ -108,12 +108,16 @@ AddEventHandler('buyable_carwash:hasEnteredMarker', function(zone, zoneType)
   elseif zoneType == 'buy' and not Config.Zones[zone].menuIsAlreadyOpened then
     CurrentAction = 'buy'
     CurrentActionMsg = _U('press_buy')
+  elseif Config.Zones[zone].menuIsAlreadyOpened then
+    CurrentAction = 'isAlreadyOpened'
+    CurrentActionMsg = _U('menu_isAlreadyOpened')    
   end
     TriggerServerEvent('buyable_carwash:getOwners')
     CurrentActionData = { zone = zone }
 end)
 
-AddEventHandler('buyable_carwash:hasExitedMarker', function(_)
+AddEventHandler('buyable_carwash:hasExitedMarker', function(zone)
+    TriggerServerEvent('buyable_carwash:closeMenu', zone)
     CurrentAction = nil
     ESX.UI.Menu.CloseAll()
 end)
