@@ -10,7 +10,6 @@ version '1.0.0'
 -- What to run
 client_scripts {
 	'@es_extended/locale.lua',
-	'locales/en.lua',
 	'locales/fr.lua',
 	'locales/en.lua',
 	'config.lua',
