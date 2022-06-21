@@ -11,5 +11,12 @@ Locales['fr'] = {
 	['shop_proprio'] = 'Gestion de la station',
 	['menu_isAlreadyOpened'] = 'Le menu est déjà en cours d\'utilisation',
 	['invalid_amount'] = 'Montant non valide',
-	['have_withdrawn'] = 'Vous avez retiré ~g~$%d'
+	['have_withdrawn'] = 'Vous avez retiré ~g~$%d',
+	['cancel'] = 'Cancel',
+	['buy_carwash'] = 'Acheter la station pour %d$',
+	['cancel_selling'] = 'Retirer le magasin de la vente',
+	['stored_money'] = 'Argent stocké - <span style="color:green;">%s</span>$',
+	['withdraw_money'] = 'Récupérer l\'argent',
+	['put_forsale'] = 'Vendre le magasin',
+	['selling_price'] = 'Prix de la vente'
 }

@@ -155,8 +155,8 @@ function OpenBuyMenu(zone)
   local elements = {}
   ESX.TriggerServerCallback('buyable_carwash:isforsale', function(isForsale, price)
       if isForsale then
-          table.insert(elements, { label = 'Acheter le magasin ' .. price .. '$', type = 'buy_shop' })
-          table.insert(elements, { label = 'Quitter', type = 'cancel' })
+          table.insert(elements, { label = _U('buy_carwash', price), type = 'buy_shop' })
+          table.insert(elements, { label = _U('cancel'), type = 'cancel' })
       end
       isForsale1 = isForsale
       waiting = false
@@ -202,11 +202,11 @@ function OpenProprioMenu(zone)
   end
 
   if isForsale1 then
-    table.insert(elements, { label = 'Retirer le magasin de la vente', type = 'cancel_selling' })
+    table.insert(elements, { label = _U('cancel_selling'), type = 'cancel_selling' })
   elseif not isForsale1 then
     waiting = true
     ESX.TriggerServerCallback('buyable_carwash:getAccountMoney', function (accountMoney)
-      table.insert(elements, { label = ('Argent stocké - <span style="color:green;">%s</span>$'):format(accountMoney) })
+      table.insert(elements, { label = (_U('stored_money')):format(accountMoney) })
       waiting = false
     end, zone)
 
@@ -214,11 +214,11 @@ function OpenProprioMenu(zone)
         Citizen.Wait(10)
     end
 
-    table.insert(elements, { label = 'Récupérer l\'argent', type = 'withdraw_money' })
-    table.insert(elements, { label = 'Vendre le magasin', type = 'put_forsale' })
+    table.insert(elements, { label = _U('withdraw_money'), type = 'withdraw_money' })
+    table.insert(elements, { label = _U('put_forsale'), type = 'put_forsale' })
   end
 
-  table.insert(elements, { label = 'Quitter', type = 'cancel' })
+  table.insert(elements, { label = _U('cancel'), type = 'cancel' })
 
   ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'buy_shop',
   {
@@ -248,7 +248,7 @@ function OpenProprioMenu(zone)
     elseif data.current.type == 'put_forsale' then
       menu.close()
       ESX.UI.Menu.Open('dialog', GetCurrentResourceName(), 'sell_shop', {
-          title = 'Prix de la vente'
+          title = _U('selling_price')
       }, function(data2, menu2)
           local price = tonumber(data2.value)
 
