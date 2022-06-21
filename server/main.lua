@@ -51,7 +51,7 @@ AddEventHandler('buyable_carwash:buy_carwash', function(zone)
         ['@zone'] = zone,
     }, function(_)end)
 
-    if playerMoney > price then
+    if playerMoney >= price then
         MySQL.Sync.execute('UPDATE `carwash_list` SET `price`=0, `owner`=@identifier, `isForSale`=@forsale WHERE name = @zone', {
             ['@identifier'] = xPlayer.identifier,
             ['@forsale'] = false,
