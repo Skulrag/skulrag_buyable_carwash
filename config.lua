@@ -2,7 +2,7 @@ Config = {}
 
 
 -- Lang
-Config.Locale = 'fr'
+Config.Locale = 'en'
 
 
 -- Minimum price authorized to sell the car wash station (only concern owners)

@@ -22,7 +22,7 @@ AddEventHandler('buyable_carwash:getOwners', function()
     if xPlayer ~= nil then
         TriggerClientEvent('buyable_carwash:saveOwners', _source, Carwash, xPlayer.identifier)
     else
-        TriggerClientEvent('esx:showNotification', _source, 'Veuillez revenir sur le point')
+        TriggerClientEvent('esx:showNotification', _source, _U('comeback'))
     end
 end)
 
@@ -64,9 +64,9 @@ AddEventHandler('buyable_carwash:buy_carwash', function(zone)
             xOwner.addAccountMoney('bank', price)
         end
         print(('[Carwash bought] FROM : Owner Identifier: %s /  BY : Identifier: %s'):format(Carwash[zone].owner, xPlayer.identifier))
-        TriggerClientEvent('esx:showNotification', _source, 'Vous venez d\'acheter cette station de lavage au prix de ' .. price .. '$')
+        TriggerClientEvent('esx:showNotification', _source, _U('bought', price))
     else
-        TriggerClientEvent('esx:showNotification', _source, 'Vous n\'avez pas assez d\'argent ')
+        TriggerClientEvent('esx:showNotification', _source, _U('not_enough_money'))
     end
 end)
 
