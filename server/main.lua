@@ -96,7 +96,7 @@ end)
 
 --
 ESX.RegisterServerCallback('buyable_carwash:getAccountMoney', function(source, cb, zone)
-  local accountMoney = MySQL.Sync.fetchScalar('SELECT accountMoney from `carwash_list` WHERE name=@zone', {
+    local accountMoney = MySQL.Sync.fetchScalar('SELECT accountMoney from `carwash_list` WHERE name=@zone', {
       ['@zone'] = zone,
   }, function(_)end)
   cb(accountMoney)

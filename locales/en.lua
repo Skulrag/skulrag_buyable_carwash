@@ -15,7 +15,7 @@ Locales['en'] = {
 	['cancel'] = 'Cancel',
 	['buy_carwash'] = 'Buy carwash station for $%d',
 	['cancel_selling'] = 'Cancel station selling',
-	['stored_money'] = 'Stored money - <span style="color:green;">%s</span>$',
+	['stored_money'] = 'Stored money - $',
 	['withdraw_money'] = 'Withdraw money',
 	['put_forsale'] = 'Put for sale',
 	['selling_price'] = 'Selling price',

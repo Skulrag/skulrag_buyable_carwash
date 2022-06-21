@@ -206,7 +206,7 @@ function OpenProprioMenu(zone)
   elseif not isForsale1 then
     waiting = true
     ESX.TriggerServerCallback('buyable_carwash:getAccountMoney', function (accountMoney)
-      table.insert(elements, { label = (_U('stored_money')):format(accountMoney) })
+      table.insert(elements, { label = (_U('stored_money') .. '<span style="color:green;">%s</span>'):format(accountMoney) })
       waiting = false
     end, zone)
 
