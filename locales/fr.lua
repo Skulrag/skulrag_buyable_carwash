@@ -15,7 +15,7 @@ Locales['fr'] = {
 	['cancel'] = 'Cancel',
 	['buy_carwash'] = 'Acheter la station pour %d$',
 	['cancel_selling'] = 'Retirer le magasin de la vente',
-	['stored_money'] = 'Argent stocké - <span style="color:green;">%s</span>$',
+	['stored_money'] = 'Argent stocké - <span style="color:green;">%d</span>$',
 	['withdraw_money'] = 'Récupérer l\'argent',
 	['put_forsale'] = 'Vendre le magasin',
 	['selling_price'] = 'Prix de la vente',
