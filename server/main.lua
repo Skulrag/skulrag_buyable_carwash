@@ -1,9 +1,14 @@
-ESX = nil
 local Carwash = {}
+local ESX = nil
+local QBCore = nil
 
-TriggerEvent('esx:getSharedObject', function(obj)
-    ESX = obj
-end)
+if Config.ESX then
+    TriggerEvent('esx:getSharedObject', function(obj)
+        ESX = obj
+    end)
+elseif Config.QBCore then
+    QBCore = exports['qb-core']:GetCoreObject()
+end
 
 --
 RegisterServerEvent('buyable_carwash:getOwners')
@@ -18,11 +23,22 @@ AddEventHandler('buyable_carwash:getOwners', function()
             isForSale = cwListResult[i].isForSale
         }
     end
-    local xPlayer = ESX.GetPlayerFromId(_source)
+
+    local xPlayer = nil
+    if Config.ESX then
+        xPlayer = ESX.GetPlayerFromId(_source)
+    elseif Config.QBCore then
+        xPlayer = QBCore.Functions.GetPlayer(_source)
+    end
+    
     if xPlayer ~= nil then
         TriggerClientEvent('buyable_carwash:saveOwners', _source, Carwash, xPlayer.identifier)
     else
-        TriggerClientEvent('esx:showNotification', _source, _U('comeback'))
+        if Config.ESX then
+            TriggerClientEvent('esx:showNotification', _source, _U('comeback'))
+        elseif Config.QBCore then
+            TriggerClientEvent('QBCore:Notify', _source, _U('comeback'))
+        end
     end
 end)
 
@@ -40,11 +56,25 @@ end)
 RegisterServerEvent('buyable_carwash:buy_carwash')
 AddEventHandler('buyable_carwash:buy_carwash', function(zone)
     local _source = source
-    local xPlayer = ESX.GetPlayerFromId(_source)
-    local playerMoney = xPlayer.getMoney()
+    local xPlayer
+    local playerMoney
     local xOwner
-    if Carwash[zone].owner ~= nil then
-      xOwner = ESX.GetPlayerFromIdentifier(Carwash[zone].owner)
+    local identifier
+
+    if Config.ESX then
+        xPlayer = ESX.GetPlayerFromId(_source)
+        identifier = xPlayer.identifier
+        playerMoney = xPlayer.getMoney()
+        if Carwash[zone].owner ~= nil then
+          xOwner = ESX.GetPlayerFromIdentifier(Carwash[zone].owner)
+        end
+    elseif Config.QBCore then
+        xPlayer = QBCore.Functions.GetPlayer(_source)
+        identifier = xPlayer.citizenid
+        playerMoney = xPlayer.Functions.GetMoney('cash')
+        if Carwash[zone].owner ~= nil then
+            xOwner = QBcore.Functions.GetPlayerByCitizenId(Carwash[zone].owner)
+          end
     end
 
     local price = MySQL.Sync.fetchScalar('SELECT price from `carwash_list` WHERE name=@zone', {
@@ -53,31 +83,58 @@ AddEventHandler('buyable_carwash:buy_carwash', function(zone)
 
     if playerMoney >= price then
         MySQL.Sync.execute('UPDATE `carwash_list` SET `price`=0, `owner`=@identifier, `isForSale`=@forsale WHERE name = @zone', {
-            ['@identifier'] = xPlayer.identifier,
+            ['@identifier'] = identifier,
             ['@forsale'] = false,
             ['@zone'] = zone,
-        }, function(_)
-        end)
-        xPlayer.removeMoney(price)
-        TriggerClientEvent('buyable_carwash:carwashBought', -1, zone, xPlayer.identifier)
-        if xOwner ~= nil then
-            xOwner.addAccountMoney('bank', price)
+        }, function(_)end)
+
+        if Config.ESX then
+            xPlayer.removeMoney(tonumber(price))
+        elseif Config.QBCore then
+            xPlayer.Functions.RemoveMoney('cash', tonumber(price))
         end
-        print(('[Carwash bought] FROM : Owner Identifier: %s /  BY : Identifier: %s'):format(Carwash[zone].owner, xPlayer.identifier))
-        TriggerClientEvent('esx:showNotification', _source, _U('bought', price))
+        TriggerClientEvent('buyable_carwash:carwashBought', -1, zone, identifier)
+        if xOwner ~= nil then
+            if Config.ESX then
+                xOwner.addAccountMoney('bank', price)
+            elseif Config.QBCore then
+                xOwner.Functions.AddMoney('bank', tonumber(price))
+            end
+        end
+        print(('[Carwash bought] FROM : Owner Identifier: %s /  BY : Identifier: %s'):format(Carwash[zone].owner, identifier))
+        if Config.ESX then
+            TriggerClientEvent('esx:showNotification', _source, _U('bought', price))
+        elseif Config.QBCore then
+            TriggerClientEvent('QBCore:Notify', _source, _U('bought', price))
+        end
     else
-        TriggerClientEvent('esx:showNotification', _source, _U('not_enough_money'))
+        if Config.ESX then
+            TriggerClientEvent('esx:showNotification', _source, _U('not_enough_money'))
+        elseif Config.QBCore then
+            TriggerClientEvent('QBCore:Notify', _source, _U('not_enough_money'))
+        end
     end
 end)
 
 --
 RegisterServerEvent('buyable_carwash:withdrawMoney')
 AddEventHandler('buyable_carwash:withdrawMoney', function(zone, amount)
-  local xPlayer = ESX.GetPlayerFromId(source)
+  local _source = source
+  local xPlayer  
+  local identifier
+
+  if Config.ESX then
+    xPlayer = ESX.GetPlayerFromId(_source)
+    identifier = xPlayer.identifier
+  elseif Config.QBCore then
+    xPlayer = QBCore.Functions.GetPlayer(_source)
+    identifier = xPlayer.citizenid
+  end
+  
   amount = ESX.Math.Round(tonumber(amount))
 
   local accountMoney = MySQL.Sync.fetchScalar('SELECT accountMoney from `carwash_list` WHERE name=@zone AND owner=@owner', {
-      ['@owner'] = xPlayer.identifier,
+      ['@owner'] = identifier,
       ['@zone'] = zone,
   }, function(_)end)
   if amount > 0 and accountMoney >= amount then
@@ -86,29 +143,61 @@ AddEventHandler('buyable_carwash:withdrawMoney', function(zone, amount)
         ['@newAmount'] = newAmount,
         ['@zone'] = zone,
     }, function(_)end)
-    xPlayer.addMoney(amount)
-    print(('[Carwash withdrawMoney] BY : Owner Identifier: %s / Quantity : %d'):format(xPlayer.identifier, amount))
-    xPlayer.showNotification(_U('have_withdrawn', ESX.Math.GroupDigits(amount)))
+    if Config.ESX then
+        xPlayer.addAccountMoney('bank', amount)
+    elseif Config.QBCore then
+        xPlayer.Functions.AddMoney('bank', tonumber(amount))
+    end
+    print(('[Carwash withdrawMoney] BY : Owner Identifier: %s / Quantity : %d'):format(identifier, amount))
+    
+    if Config.ESX then
+        TriggerClientEvent('esx:showNotification', _source, _U('have_withdrawn', ESX.Math.GroupDigits(amount)))
+    elseif Config.QBCore then
+        TriggerClientEvent('QBCore:Notify', _source, _U('have_withdrawn', ESX.Math.GroupDigits(amount)))
+    end
   else
-    xPlayer.showNotification(_U('invalid_amount'))
+    if Config.ESX then
+        TriggerClientEvent('esx:showNotification', _source, _U('invalid_amount'))
+    elseif Config.QBCore then
+        TriggerClientEvent('QBCore:Notify', _source, _U('invalid_amount'))
+    end
   end
 end)
 
---
-ESX.RegisterServerCallback('buyable_carwash:getAccountMoney', function(source, cb, zone)
-    local accountMoney = MySQL.Sync.fetchScalar('SELECT accountMoney from `carwash_list` WHERE name=@zone', {
-      ['@zone'] = zone,
-  }, function(_)end)
-  cb(accountMoney)
-end)
+-- Callbacks
 
---
-ESX.RegisterServerCallback('buyable_carwash:isforsale', function(source, cb, zone)
-  local price = MySQL.Sync.fetchScalar('SELECT price from `carwash_list` WHERE name=@zone', {
-      ['@zone'] = zone,
-  }, function(_)end)
-  cb(Carwash[zone].isForSale, price)
-end)
+if Config.ESX then
+    ESX.RegisterServerCallback('buyable_carwash:getAccountMoney', function(source, cb, zone)
+        local accountMoney = MySQL.Sync.fetchScalar('SELECT accountMoney from `carwash_list` WHERE name=@zone', {
+          ['@zone'] = zone,
+      }, function(_)end)
+      cb(accountMoney)
+    end)
+
+    ESX.RegisterServerCallback('buyable_carwash:isforsale', function(source, cb, zone)
+      local price = MySQL.Sync.fetchScalar('SELECT price from `carwash_list` WHERE name=@zone', {
+          ['@zone'] = zone,
+      }, function(_)end)
+      cb(Carwash[zone].isForSale, price)
+    end)
+end
+
+if Config.QBCore then
+    QBCore.Functions.CreateCallback('buyable_carwash:getAccountMoney', function(source, cb)
+        local accountMoney = MySQL.Sync.fetchScalar('SELECT accountMoney from `carwash_list` WHERE name=@zone', {
+            ['@zone'] = zone,
+        }, function(_)end)
+        cb(accountMoney)
+    end)
+
+    QBCore.Functions.CreateCallback('buyable_carwash:isforsale', function(source, cb)
+        local price = MySQL.Sync.fetchScalar('SELECT price from `carwash_list` WHERE name=@zone', {
+            ['@zone'] = zone,
+        }, function(_)end)
+        cb(Carwash[zone].isForSale, price)
+    end)
+end
+
 
 --
 RegisterServerEvent('buyable_carwash:cancelselling')
@@ -148,24 +237,50 @@ end
 RegisterServerEvent('buyable_carwash:checkMoney')
 AddEventHandler('buyable_carwash:checkMoney', function(price, zone)
     local _source = source
-    local xPlayer = ESX.GetPlayerFromId(_source)
-    price = tonumber(price)
-    if price < xPlayer.getAccount('bank').money then
-      TriggerClientEvent('buyable_carwash:clean', _source)
-      xPlayer.removeAccountMoney('bank', price)
-      addMoneyToCarWash(zone, price)
-    elseif price < xPlayer.getMoney() then
-        TriggerClientEvent('buyable_carwash:clean', _source)
-        xPlayer.removeMoney(price)
-        addMoneyToCarWash(zone, price)
-    elseif price < xPlayer.getAccount('bank').money + xPlayer.getMoney() then
-        TriggerClientEvent('buyable_carwash:clean', _source)
-        local bankPrice = xPlayer.getAccount('bank').money
-        xPlayer.removeAccountMoney('bank', bankPrice)
-        local cashPrice = price - bankPrice
-        xPlayer.removeMoney(cashPrice)
-        addMoneyToCarWash(zone, price)
-    else
-        TriggerClientEvent('buyable_carwash:cancel', _source)
+
+    if Config.ESX then
+        local xPlayer = ESX.GetPlayerFromId(_source)
+        price = tonumber(price)
+        if price < xPlayer.getAccount('bank').money then
+          TriggerClientEvent('buyable_carwash:clean', _source)
+          xPlayer.removeAccountMoney('bank', price)
+          addMoneyToCarWash(zone, price)
+        elseif price < xPlayer.getMoney() then
+            TriggerClientEvent('buyable_carwash:clean', _source)
+            xPlayer.removeMoney(price)
+            addMoneyToCarWash(zone, price)
+        elseif price < xPlayer.getAccount('bank').money + xPlayer.getMoney() then
+            TriggerClientEvent('buyable_carwash:clean', _source)
+            local bankPrice = xPlayer.getAccount('bank').money
+            xPlayer.removeAccountMoney('bank', bankPrice)
+            local cashPrice = price - bankPrice
+            xPlayer.removeMoney(cashPrice)
+            addMoneyToCarWash(zone, price)
+        else
+            TriggerClientEvent('buyable_carwash:cancel', _source)
+        end
+    end
+
+    if Config.QBCore then
+        local xPlayer = QBCore.Functions.GetPlayer(_source)
+        price = tonumber(price)
+        if price < xPlayer.Functions.GetMoney('bank') then
+          TriggerClientEvent('buyable_carwash:clean', _source)
+          xPlayer.Functions.RemoveMoney('bank', tonumber(price))
+          addMoneyToCarWash(zone, price)
+        elseif price < xPlayer.Functions.GetMoney('cash') then
+            TriggerClientEvent('buyable_carwash:clean', _source)
+            xPlayer.Functions.RemoveMoney('cash', tonumber(price))
+            addMoneyToCarWash(zone, price)
+        elseif price < xPlayer.Functions.GetMoney('bank') + xPlayer.Functions.GetMoney('cash') then
+            TriggerClientEvent('buyable_carwash:clean', _source)
+            local bankPrice = xPlayer.Functions.GetMoney('bank')
+            xPlayer.Functions.RemoveMoney('bank', tonumber(bankPrice))
+            local cashPrice = price - bankPrice
+            xPlayer.Functions.RemoveMoney('cash', tonumber(cashPrice))
+            addMoneyToCarWash(zone, price)
+        else
+            TriggerClientEvent('buyable_carwash:cancel', _source)
+        end
     end
 end)
