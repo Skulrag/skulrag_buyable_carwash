@@ -1,10 +1,5 @@
 Config = {}
 
--- Set ESX to false and QBCore to true if you use QBCore
--- Set QBCore to false and ESX to true if you use ESX
-Config.ESX = true
-Config.QBCore = false
-
 -- Lang
 Config.Locale = 'en'
 
